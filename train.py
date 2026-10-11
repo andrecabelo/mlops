@@ -80,7 +80,7 @@ def config_mlflow():
     # 🌟 NEW: Checks if running inside GitHub Actions cloud or local Mac
     if 'DAGSHUB_TOKEN' in os.environ:
         # If the token exists (Cloud Pipeline), authenticate silently in the background
-        mlflow.set_tracking_uri('https://dagshub.com')
+        mlflow.set_tracking_uri('https://dagshub.com/andrecabelo/mlops.mlflow')
         os.environ['MLFLOW_TRACKING_USERNAME'] = 'andrecabelo'
         os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ['DAGSHUB_TOKEN']
     else:
@@ -92,9 +92,12 @@ def config_mlflow():
 
     # Keep the awesome TensorFlow autolog active!
     mlflow.tensorflow.autolog(log_models=True,
-                             log_input_examples=True,
-                             log_model_signatures=True)
+                            log_input_examples=True,
+                            log_model_signatures=True)
 
+# 🌟 A MUDANÇA MÁGICA ESTÁ AQUI: Executa IMEDIATAMENTE ao ler o arquivo, 
+# permitindo que o Pytest na nuvem intercepte as credenciais antes dos testes!
+config_mlflow() 
 
 def train_model(model, X_train, y_train, is_train=True):
    with mlflow.start_run(run_name='experimento-mlops-ead') as run:
@@ -105,9 +108,11 @@ def train_model(model, X_train, y_train, is_train=True):
                verbose=3)
 
 
+# 🔽 O bloco do professor continua abaixo, apenas sem a linha do config_mlflow()
 if __name__ == "__main__":
    X, y = read_data()
    X_train, X_test, y_train, y_test = process_data(X,y)
    model = create_model(X)
-   config_mlflow()
+   # Alterado para corrigir falha de autenticacao do dagshub
+   #config_mlflow()
    train_model(model, X_train, y_train)
