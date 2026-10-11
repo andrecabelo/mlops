@@ -8,3 +8,4 @@ pytest
 pycodestyle
 tensorflow>=2.15.0
 dagshub
+tensorboard
