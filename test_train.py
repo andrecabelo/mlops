@@ -8,7 +8,7 @@ from train import (read_data,
 
 # 🌟 BLINDAGEM DOS TESTES: Força a autenticação global antes do pytest agir
 if 'DAGSHUB_TOKEN' in os.environ:
-    mlflow.set_tracking_uri('https://dagshub.com/andrecabelo/mlops.mlflow'')
+    mlflow.set_tracking_uri('https://dagshub.com/andrecabelo/mlops.mlflow')
     os.environ['MLFLOW_TRACKING_USERNAME'] = 'andrecabelo'
     os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ['DAGSHUB_TOKEN']
 else:
