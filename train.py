@@ -63,17 +63,38 @@ def create_model(X):
    return model
 
 
-def config_mlflow():
+#def config_mlflow():
    # Inicializa a conexão com o SEU repositório (faz o login automático no navegador)
-   dagshub.init(repo_owner='andrecabelo', repo_name='mlops')
+   #dagshub.init(repo_owner='andrecabelo', repo_name='mlops')
 
    # Define o nome do seu experimento para organizar no painel
-   mlflow.set_experiment("experimento-mlops-ead")
+   #mlflow.set_experiment("experimento-mlops-ead")
 
    # Ativa o rastreamento automático do TensorFlow (recurso fantástico que seu professor usou!)
-   mlflow.tensorflow.autolog(log_models=True,
-                           log_input_examples=True,
-                           log_model_signatures=True)
+   #mlflow.tensorflow.autolog(log_models=True,
+                           #log_input_examples=True,
+                           #log_model_signatures=True)
+
+
+def config_mlflow():
+    # 🌟 NEW: Checks if running inside GitHub Actions cloud or local Mac
+    if 'DAGSHUB_TOKEN' in os.environ:
+        # If the token exists (Cloud Pipeline), authenticate silently in the background
+        mlflow.set_tracking_uri('https://dagshub.com')
+        os.environ['MLFLOW_TRACKING_USERNAME'] = 'andrecabelo'
+        os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ['DAGSHUB_TOKEN']
+    else:
+        # If the token doesn't exist (Your local Mac), use the automatic browser login
+        dagshub.init(repo_owner='andrecabelo', repo_name='mlops')
+
+    # Define the experiment name
+    mlflow.set_experiment("experimento-mlops-ead")
+
+    # Keep the awesome TensorFlow autolog active!
+    mlflow.tensorflow.autolog(log_models=True,
+                             log_input_examples=True,
+                             log_model_signatures=True)
+
 
 def train_model(model, X_train, y_train, is_train=True):
    with mlflow.start_run(run_name='experimento-mlops-ead') as run:
