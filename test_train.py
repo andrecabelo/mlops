@@ -1,6 +1,8 @@
+import os
 import pandas as pd
 import pytest
 from tensorflow.keras.models import Sequential
+import mlflow
 
 from train import (read_data,
                    create_model,
