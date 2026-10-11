@@ -6,6 +6,15 @@ from train import (read_data,
                    create_model,
                    train_model)
 
+# 🌟 BLINDAGEM DOS TESTES: Força a autenticação global antes do pytest agir
+if 'DAGSHUB_TOKEN' in os.environ:
+    mlflow.set_tracking_uri('https://dagshub.com/andrecabelo/mlops.mlflow'')
+    os.environ['MLFLOW_TRACKING_USERNAME'] = 'andrecabelo'
+    os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ['DAGSHUB_TOKEN']
+else:
+    import dagshub
+    dagshub.init(repo_owner='andrecabelo', repo_name='mlops')
+
 
 @pytest.fixture
 def sample_data():
