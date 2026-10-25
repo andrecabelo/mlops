@@ -1,0 +1,7 @@
+venv/
+.venv/
+__pycache__/
+*.ipynb
+.git/
+.ipynb_checkpoints/
+modelo_puc_final/

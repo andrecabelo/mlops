@@ -1,6 +1,7 @@
 import os
 import mlflow
 import numpy as np
+import dagshub
 from pydantic import BaseModel
 from fastapi import FastAPI
 
@@ -28,35 +29,28 @@ app = FastAPI(title="Fetal Health API",
 def load_model():
     """
     Loads a pre-trained model from an MLflow server.
-
-    This function connects to an MLflow server using the provided tracking URI, username,
-     and password.
-    It retrieves the latest version of the 'fetal_health' model registered on the server.
-    The function then loads the model using the specified run ID and returns the loaded model.
-
-    Returns:
-        loaded_model: The loaded pre-trained model.
-
-    Raises:
-        None
     """
-    print('reading model...')
-    MLFLOW_TRACKING_URI = 'https://dagshub.com/renansantosmendes/mlops-ead.mlflow'
-    MLFLOW_TRACKING_USERNAME = 'renansantosmendes'
-    MLFLOW_TRACKING_PASSWORD = 'b63baf8c662a23fa00deb74ba86600278769e5dd'
-    os.environ['MLFLOW_TRACKING_USERNAME'] = MLFLOW_TRACKING_USERNAME
-    os.environ['MLFLOW_TRACKING_PASSWORD'] = MLFLOW_TRACKING_PASSWORD
-    print('setting mlflow...')
+    print('Inicializando conexão com DagsHub...')
+    # Autenticação moderna e segura, substituindo senhas em texto puro
+    dagshub.init(repo_owner='andrecabelo', repo_name='mlops')
+    
+    MLFLOW_TRACKING_URI = 'https://dagshub.com/andrecabelo/mlops.mlflow'
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    print('creating client..')
-    client = mlflow.MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
-    print('getting registered model...')
-    registered_model = client.get_registered_model('fetal_health')
-    print('read model...')
-    run_id = registered_model.latest_versions[-1].run_id
-    logged_model = f'runs:/{run_id}/model'
-    loaded_model = mlflow.pyfunc.load_model(logged_model)
-    print(loaded_model)
+    
+    print('Buscando o modelo registrado...')
+    
+    try:
+        # Utiliza o mecanismo de fallback clássico que obteve sucesso no notebook
+        loaded_model = mlflow.pyfunc.load_model("models:/fetal_health/1")
+        print('Modelo carregado com sucesso a partir do Registry clássico!')
+    except Exception as e:
+        print(f"Erro ao carregar o modelo: {e}")
+        # Plano B: Tenta buscar dinamicamente a versão com o alias 'champion'
+        client = mlflow.MlflowClient()
+        model_details = client.get_registered_model('fetal_health')
+        run_id = model_details.latest_versions[-1].run_id
+        loaded_model = mlflow.pyfunc.load_model(f"runs:/{run_id}/model")
+        
     return loaded_model
 
 
@@ -65,12 +59,6 @@ def startup_event():
     """
     A function that is called when the application starts up. It loads a model into the
     global variable `loaded_model`.
-
-    Parameters:
-        None
-
-    Returns:
-        None
     """
     global loaded_model
     loaded_model = load_model()
@@ -81,10 +69,6 @@ def startup_event():
 def api_health():
     """
     A function that represents the health endpoint of the API.
-
-    Returns:
-        dict: A dictionary containing the status of the API, with the key "status" and
-        the value "healthy".
     """
     return {"status": "healthy"}
 
@@ -94,15 +78,6 @@ def api_health():
 def predict(request: FetalHealthData):
     """
     Predicts the fetal health based on the given request data.
-
-    Args:
-        request (FetalHealthData): The request data containing the fetal health parameters.
-
-    Returns:
-        dict: A dictionary containing the prediction of the fetal health.
-
-    Raises:
-        None
     """
     global loaded_model
     received_data = np.array([

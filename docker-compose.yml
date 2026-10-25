@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    image: model_api
+    ports:
+      - "80:80"
+    env_file:
+      - .env
